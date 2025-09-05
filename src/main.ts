@@ -1,6 +1,9 @@
 import { Firebot } from "@crowbartools/firebot-custom-scripts-types";
+import { Params } from "./globals";
 
-interface Params { }
+import globals from "./globals";
+import setupBackend from "./backend";
+import setupFrontend from "./frontend";
 
 const script: Firebot.CustomScript<Params> = {
   getScriptManifest: () => {
@@ -14,9 +17,25 @@ const script: Firebot.CustomScript<Params> = {
     };
   },
   getDefaultParameters: () => {
-    return { };
+    return {};
   },
-  run: (runRequest) => { },
+  run: async (runRequest) => {
+    globals.runRequest = runRequest;
+    // @ts-expect-error
+    if (runRequest.scriptDataDir) {
+      // @ts-expect-error
+      globals.scriptDataDir = runRequest.scriptDataDir;
+    } else {
+      const scriptNameNormalized = (await script.getScriptManifest()).name.replace(/[#%&{}\\<>*?/$!'":@`|=\s-]+/g, "-").toLowerCase();
+      globals.scriptDataDir = runRequest.modules.path.join(SCRIPTS_DIR, "..", "script-data", scriptNameNormalized);
+    }
+    if (!runRequest.modules.fs.existsSync(globals.scriptDataDir)) {
+      runRequest.modules.fs.mkdirSync(globals.scriptDataDir, { recursive: true });
+    }
+
+    setupBackend();
+    setupFrontend();
+  },
 };
 
 export default script;
