@@ -1,7 +1,10 @@
 import { AngularJsFactory } from "@crowbartools/firebot-custom-scripts-types/types/modules/ui-extension-manager";
+import { type VqBackendService } from "./vq-backend";
 
-type ViewerQueuesService = {
+export type ViewerQueuesService = {
+    selectedQueueId?: string;
     queues: DatabaseSchema["queues"];
+    queuesArray: ViewerQueue[];
     getQueues: () => Promise<DatabaseSchema["queues"]>;
     addOrEditQueue: (queue?: ViewerQueue) => void;
     addViewerToQueue: (queueId: string) => void;
@@ -9,30 +12,43 @@ type ViewerQueuesService = {
     deleteQueue: (queueId: string) => void;
     clearQueue: (queueId: string) => void;
     rollViewers: (queueId: string, count: number) => void;
-    rollViewer: (queueId: string, viewerId: string) => Promise<boolean>;
 };
 
 const service: AngularJsFactory = {
     name: "viewerQueuesService",
-    function: (backendCommunicator: any, utilityService: any) => {
-        const backendCommunicatorShim = {
-            on<T extends keyof FrontendCommunicatorCommands>(request: T, callback: (...args: FrontendCommunicatorCommands[T]["args"]) => Promise<FrontendCommunicatorCommands[T]["returns"]>) {
-                backendCommunicator.onAsync(request, (args: FrontendCommunicatorCommands[T]["args"]) => callback(...args));
-            },
-            async send<T extends keyof BackendCommunicatorCommands>(request: T, ...args: BackendCommunicatorCommands[T]["args"]) {
-                return await backendCommunicator.fireEventAsync(request, args) as BackendCommunicatorCommands[T]["returns"];
-            }
-        }
+    function: (vqBackend: VqBackendService, utilityService: any) => {
         const service: Partial<ViewerQueuesService> = {
             queues: {},
+            queuesArray: [],
             getQueues: async () => {
-                service.queues = await backendCommunicatorShim.send("getQueues");
+                service.queues = await vqBackend.send("getQueues");
+                service.queuesArray = Object.values(service.queues);
+                service.queuesArray.forEach(queue => {
+                    if (queue.type === "stack" && queue.viewers.length > 0) {
+                        queue.viewers.reverse();
+                    }
+                });
+                if (!service.selectedQueueId && service.queuesArray.length > 0) {
+                    service.selectedQueueId = service.queuesArray[0].id;
+                }
                 return service.queues;
             },
             addOrEditQueue: (queue) => {
-                // Show modal to add or edit a queue
+                utilityService.showModal({
+                component: "addOrEditViewerQueueModal",
+                breadcrumbName: "Add or Edit Viewer Queue",
+                size: "sm",
+                backdrop: true,
+                resolveObj: {
+                    model: () => queue
+                },
+                closeCallback: (resp: any) => {}
+            });
             },
-            addViewerToQueue: (queueId) => {
+            addViewerToQueue: () => {
+                if (!service.selectedQueueId) {
+                    return;
+                }
                 utilityService.openViewerSearchModal({
                     label: "Add Viewer to Queue",
                     saveText: "Add",
@@ -41,14 +57,17 @@ const service: AngularJsFactory = {
                             return false;
                         }
 
-                        return service.queues[queueId].viewers.every(v => v.id !== viewer.id);
+                        return service.queues[service.selectedQueueId].viewers.every(v => v.id !== viewer.id);
                     }
                 }, (viewer: QueueViewer) => {
-                    backendCommunicatorShim.send("addViewer", queueId, viewer);
+                    vqBackend.send("addViewer", service.selectedQueueId, viewer);
                 });
             },
-            removeViewerFromQueue: (queueId, viewerId) => {
-                backendCommunicatorShim.send("removeViewer", queueId, viewerId);
+            removeViewerFromQueue: (viewerId) => {
+                if (!service.selectedQueueId) {
+                    return;
+                }
+                vqBackend.send("removeViewer", service.selectedQueueId, viewerId);
             },
             deleteQueue: (queueId) => {
                 utilityService.showConfirmationModal({
@@ -58,8 +77,12 @@ const service: AngularJsFactory = {
                     confirmBtnType: "btn-danger"
                 }).then((confirmed: boolean) => {
                     if (confirmed) {
-                        backendCommunicatorShim.send("deleteQueue", queueId);
+                        vqBackend.send("deleteQueue", queueId);
                         delete service.queues[queueId];
+                        service.queuesArray = Object.values(service.queues);
+                        if (service.selectedQueueId === queueId) {
+                            service.selectedQueueId = service.queuesArray.length > 0 ? service.queuesArray[0].id : undefined;
+                        }
                     }
                 });
             },
@@ -71,17 +94,25 @@ const service: AngularJsFactory = {
                     confirmBtnType: "btn-warning"
                 }).then((confirmed: boolean) => {
                     if (confirmed) {
-                        backendCommunicatorShim.send("clearQueue", queueId);
+                        vqBackend.send("clearQueue", queueId);
                     }
                 });
             },
             rollViewers: (queueId, count) => {
-                backendCommunicatorShim.send("rollViewers", queueId, count);
-            },
-            rollViewer: (queueId, viewerId) => {
-                return backendCommunicatorShim.send("rollViewer", queueId, viewerId);
+                vqBackend.send("rollViewers", queueId, count);
             }
         };
+
+        service.getQueues();
+
+        vqBackend.on("queueUpdated", async (queue) => {
+            if (queue.type === "stack" && queue.viewers.length > 0) {
+                queue.viewers.reverse();
+            }
+            service.queues[queue.id!] = queue;
+            service.queuesArray = Object.values(service.queues);
+        });
+
         return service;
     }
 };

@@ -8,40 +8,48 @@ type FrontendCommunicatorCommands = {
 
 // Frontend -> Backend
 type BackendCommunicatorCommands = {
-    addViewer: {
-        args: [ queueId: string, viewer: QueueViewer ];
-        returns: void;
-    };
-    removeViewer: {
-        args: [ queueId: string, viewerId: string ];
-        returns: void;
-    };
     addQueue: {
-        args: [ queue: Omit<ViewerQueue, "id"> ];
+        args: [ queue: ViewerQueue ];
         returns: ViewerQueue;
     };
-    deleteQueue: {
-        args: [ queueId: string ];
-        returns: void;
+    addViewer: {
+        args: [ queueId: string, viewer: QueueViewer ];
+        returns: boolean;
     };
     clearQueue: {
         args: [ queueId: string ];
-        returns: void;
+        returns: boolean;
     };
-    updateQueueType: {
-        args: [ queueId: string, type: QueueType ];
-        returns: void;
+    deleteQueue: {
+        args: [ queueId: string ];
+        returns: boolean;
+    };
+    getLayout: {
+        args: [];
+        returns: DatabaseSchema["layout"];
     };
     getQueues: {
         args: [];
         returns: DatabaseSchema["queues"];
     };
-    rollViewers: {
-        args: [ queueId: string, count: number ];
-        returns: void;
-    };
-    rollViewer: {
+    removeViewer: {
         args: [ queueId: string, viewerId: string ];
         returns: boolean;
+    };
+    rollViewers: {
+        args: [ queueId: string, count: number ];
+        returns: QueueViewer[] | undefined;
+    };
+    updateLayout: {
+        args: [ layout: DatabaseSchema["layout"] ];
+        returns: void;
+    };
+    updateQueueName: {
+        args: [ queueId: string, name: string ];
+        returns: void;
+    };
+    updateQueueType: {
+        args: [ queueId: string, type: QueueType ];
+        returns: void;
     };
 }

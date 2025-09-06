@@ -1,0 +1,51 @@
+<div class="modal-header">
+    <button
+        type="button"
+        class="close"
+        aria-label="Close"
+        ng-click="$ctrl.dismiss()"
+    >
+        <i class="fal fa-times" aria-hidden="true"></i>
+    </button>
+    <h4 class="modal-title">
+        <div ng-show="$ctrl.isNewViewerQueue" class="action text-4xl">Create Viewer Queue</div>
+        <div ng-show="!$ctrl.isNewViewerQueue" class="action text-4xl">Edit Viewer Queue</div>
+    </h4>
+</div>
+<div class="modal-body">
+    <form name="viewerQueueSettings">
+        <div class="form-group" ng-class="{'has-error': $ctrl.formFieldHasError('name')}">
+            <label for="name" class="control-label">Name</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                ng-minlength="3"
+                ui-validate="{taken:'!$ctrl.nameIsTaken($value)'}"
+                required
+                class="form-control input-lg"
+                placeholder="Give the viewer queue a name"
+                ng-model="viewerQueue.name"
+            />
+            <div ng-if="$ctrl.formFieldHasError('name')">
+                <span ng-if="viewerQueueSettings.name.$error.required" class="help-block">Name is required.</span>
+                <span ng-if="viewerQueueSettings.name.$error.minlength" class="help-block">Name must be 3 or more characters.</span>
+                <span ng-if="viewerQueueSettings.name.$error.taken" class="help-block">This name is already in use.</span>
+            </div>
+        </div>
+
+        <div class="form-group" ng-class="{'has-error': $ctrl.formFieldHasError('viewerQueueMode')}">
+            <label for="trackBy" class="control-label">Mode</label>
+            <queue-mode-radio-cards
+                ng-model="viewerQueue.type"
+                id="viewerQueueMode"
+                name="viewerQueueMode"
+                ng-required="true"
+            ></queue-mode-radio-cards>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" ng-click="$ctrl.dismiss()">Cancel</button>
+    <button type="button" class="btn btn-primary" ng-click="$ctrl.save()">Save</button>
+</div>

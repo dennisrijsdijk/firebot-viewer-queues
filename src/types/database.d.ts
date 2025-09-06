@@ -8,7 +8,8 @@ type QueueViewer = {
 type QueueType = "queue" | "stack" | "random";
 
 type ViewerQueue = {
-    id: string;
+    open: boolean;
+    id?: string;
     name: string;
     type: QueueType;
     viewers: QueueViewer[];
@@ -16,4 +17,8 @@ type ViewerQueue = {
 
 type DatabaseSchema = {
     queues: Record<string, ViewerQueue>;
+    layout: {
+        queuesTable: string;
+        viewerList: string;
+    }
 }

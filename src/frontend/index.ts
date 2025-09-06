@@ -1,14 +1,15 @@
+import components from "./components";
 import factories from "./factories";
-import filters from "./filters";
 import globals from "../globals";
+import page from "./page";
 
 export default function setupFrontend() {
     globals.runRequest.modules.uiExtensionManager.registerUIExtension({
         id: "dennisontheinternet:viewer-queues",
-        pages: [],
+        pages: [ page ],
         providers: {
-            factories,
-            filters
+            components,
+            factories
         }
     });
 }

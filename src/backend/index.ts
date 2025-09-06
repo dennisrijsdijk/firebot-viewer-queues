@@ -1,3 +1,5 @@
+import { setupDatabase } from "./database";
+
 export default function setupBackend() {
-    // Reserved for future.
+    setupDatabase();
 }

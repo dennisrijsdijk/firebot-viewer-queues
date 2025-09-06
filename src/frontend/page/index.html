@@ -1,0 +1,45 @@
+<style>
+    .viewer-queue-page-container {
+        display: flex;
+        flex-direction: row;
+        height: 100%;
+        width: 100%;
+    }
+
+    .viewer-queue-queue-list {
+        width: 50%;
+    }
+
+    .viewer-queue-viewer-list {
+        flex-grow: 1;
+    }
+</style>
+
+<div ng-if="!vqs.queuesArray || vqs.queuesArray.length === 0" style="
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 80px;
+  ">
+    Loading Viewer Queues...
+</div>
+
+<div class="viewer-queue-page-container" ng-if="vqs.queuesArray && vqs.queuesArray.length > 0">
+    <vq-item-table ng-style="{ 'width': layout.queuesTable }" id="queuesTable" items="vqs.queuesArray"
+        on-items-update="onQueuesUpdated(items)" headers="queueHeaders" orderable="false"
+        add-new-button-text="New Viewer Queue" on-add-new-clicked="vqs.addOrEditQueue()"
+        context-menu-options="queueOptions(item)" no-data-message="No viewer queues saved. You should make one! :)"
+        none-found-message="No viewer queues found." search-placeholder="Search viewer queues"
+        test-button="false" status-field="open"></vq-item-table>
+    <column-resizer on-update="resizeTriggered(updatedSettings)"></column-resizer>
+    <div id="viewerList" ng-style="{ 'width': layout.viewerList }" style="height: 100%;">
+        <vq-item-table ng-repeat="queue in vqs.queuesArray track by queue.id"
+            ng-show="vqs.selectedQueueId && queue.id === vqs.selectedQueueId" items="queue.viewers"
+            on-items-update="onViewersUpdated(items)" headers="orderedViewerHeaders" orderable="false"
+            add-new-button-text="New Viewer" on-add-new-clicked="vqs.addViewerToQueue()" context-menu-options="viewerOptions(item)"
+            no-data-message="No viewers in this queue. You should add one! :)" none-found-message="No viewers found."
+            search-placeholder="Search viewers" test-button="false"></vq-item-table>
+    </div>
+</div>

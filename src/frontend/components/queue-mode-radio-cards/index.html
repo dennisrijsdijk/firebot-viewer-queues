@@ -1,0 +1,37 @@
+<div name="Queue Mode" id="{{$ctrl.id}}" class="fb-radio-card-container" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="fb-radio-card" class="justify-center" ng-class="{ 'selected': $ctrl.modelValue === 'queue' }" ng-click="setQueueMode('queue')">
+        <div class="fb-radio-card-icon">
+            <svg width="20px" height="20px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+                <path d="m3.25 7.25-1.5.75 6.25 3.25 6.25-3.25-1.5-.75m-11 3.75 6.25 3.25 6.25-3.25"/>
+                <path d="m8 8.25v-6.5m-2.25 4.5 2.25 2 2.25-2"/>
+            </svg>
+        </div>
+        <div class="fb-radio-card-text-container">
+            <div class="fb-radio-card-title">Queue</div>
+            <!-- <div class="fb-radio-card-description">Pick the first viewer to join the queue</div> -->
+        </div>
+    </div>
+
+    <div class="fb-radio-card" class="justify-center" ng-class="{ 'selected': $ctrl.modelValue === 'stack' }" ng-click="setQueueMode('stack')">
+        <div class="fb-radio-card-icon">
+            <svg width="20px" height="20px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+                <path d="m4.25 6.75-2.5 1.25 6.25 3.25 6.25-3.25-2.5-1.25m-10 4.25 6.25 3.25 6.25-3.25"/>
+                <path d="m8 8.25v-6.5m-2.25 2 2.25-2 2.25 2"/>
+            </svg>
+        </div>
+        <div class="fb-radio-card-text-container">
+            <div class="fb-radio-card-title">Stack</div>
+            <!-- <div class="fb-radio-card-description">Pick the last viewer to join the queue</div> -->
+        </div>
+    </div>
+
+    <div class="fb-radio-card" class="justify-center" ng-class="{ 'selected': $ctrl.modelValue === 'random' }" ng-click="setQueueMode('random')">
+        <div class="fb-radio-card-icon">
+            <i class="fal fa-random"></i>
+        </div>
+        <div class="fb-radio-card-text-container">
+            <div class="fb-radio-card-title">Random</div>
+            <!-- <div class="fb-radio-card-description">Pick a random viewer in the queue</div> -->
+        </div>
+    </div>
+</div>
