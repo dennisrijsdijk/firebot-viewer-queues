@@ -8,7 +8,8 @@ export type ViewerQueuesService = {
     getQueues: () => Promise<DatabaseSchema["queues"]>;
     addOrEditQueue: (queue?: ViewerQueue) => void;
     addViewerToQueue: (queueId: string) => void;
-    removeViewerFromQueue: (queueId: string, viewerId: string) => void;
+    removeViewerFromQueue: (viewerId: string) => void;
+    toggleQueue: (queueId: string) => void;
     deleteQueue: (queueId: string) => void;
     clearQueue: (queueId: string) => void;
     rollViewers: (queueId: string, count: number) => void;
@@ -67,7 +68,24 @@ const service: AngularJsFactory = {
                 if (!service.selectedQueueId) {
                     return;
                 }
-                vqBackend.send("removeViewer", service.selectedQueueId, viewerId);
+
+                utilityService.showConfirmationModal({
+                    title: "Remove Viewer",
+                    question: "Are you sure you want to remove this viewer? This action cannot be undone.",
+                    confirmLabel: "Remove",
+                    confirmBtnType: "btn-danger"
+                }).then((confirmed: boolean) => {
+                    if (confirmed) {
+                        vqBackend.send("removeViewer", service.selectedQueueId, viewerId);
+                    }
+                });
+            },
+            toggleQueue: (queueId) => {
+                const queue = service.queues[queueId];
+                if (!queue) {
+                    return;
+                }
+                vqBackend.send("toggleQueue", queueId);
             },
             deleteQueue: (queueId) => {
                 utilityService.showConfirmationModal({

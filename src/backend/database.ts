@@ -78,13 +78,20 @@ class ViewerQueueDatabase {
             sendQueueUpdate(queue);
             return true;
         });
+        globals.frontendCommunicator.on("toggleQueue", async (queueId: string) => {
+            const queue = mockDatabase.queues[queueId];
+            if (!queue) {
+                return;
+            }
+            queue.open = !queue.open;
+            sendQueueUpdate(queue);
+        });
         globals.frontendCommunicator.on("deleteQueue", async (queueId: string) => {
             const queue = mockDatabase.queues[queueId];
             if (!queue) {
                 return false;
             }
             delete mockDatabase.queues[queueId];
-            sendQueueUpdate(queue);
             return true;
         });
         globals.frontendCommunicator.on("getLayout", async () => {

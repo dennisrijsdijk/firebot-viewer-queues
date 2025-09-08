@@ -19,6 +19,8 @@ const component: AngularJsComponent = {
         addNewButtonDisabled: "<?",
         addNewButtonText: "@",
         onAddNewClicked: "&",
+        allowSelect: "<?",
+        selectedItemId: "=?",
         contextMenuOptions: "&",
         noDataMessage: "@",
         noneFoundMessage: "@",
@@ -27,6 +29,8 @@ const component: AngularJsComponent = {
         testButton: "<?",
         onTestButtonClicked: "&",
         statusField: "@?",
+        statusTrueLabel: "@?",
+        statusFalseLabel: "@?",
         startingSortField: "@?",
         sortInitiallyReversed: "<?",
         customFilterName: "@?",
@@ -39,6 +43,8 @@ const component: AngularJsComponent = {
     },
     controller: ($scope: Scope, sortTagsService: any, effectQueuesService: any) => {
         const $ctrl = $scope.$ctrl;
+
+        $ctrl.selectedItemId = null;
 
         $scope.sts = sortTagsService;
 

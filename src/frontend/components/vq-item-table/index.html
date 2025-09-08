@@ -132,6 +132,7 @@
                     </th>
                     <th ng-if="$ctrl.showStatusIndicator"></th>
                     <th></th>
+                    <th ng-if="$ctrl.allowSelect" class="text-center" style="width: 50px;"></th>
                 </tr>
             </thead>
             <tbody
@@ -180,7 +181,7 @@
                         ></sort-tags-row>
                     </td>
                     <td ng-if="$ctrl.showStatusIndicator">
-                        <status-indicator status="$ctrl.getStatus(item)" />
+                        <status-indicator status="$ctrl.getStatus(item)" enabled-label="{{$ctrl.statusTrueLabel}}" disabled-label="{{$ctrl.statusFalseLabel}}" />
                     </td>
                     <td class="fit-table-drag-handle">
                         <div>
@@ -210,6 +211,15 @@
                                 </button>
                             </div>
                         </div>
+                    </td>
+                    <td ng-if="$ctrl.allowSelect" class="text-center">
+                        <button 
+                            class="btn btn-link p-2" 
+                            ng-click="$ctrl.selectedItemId = item.id"
+                            style="color: #fff; font-size: 14px;"
+                            title="Select entry">
+                            <i class="fas" ng-class="$ctrl.selectedItemId === item.id ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                        </button>
                     </td>
                 </tr>
             </tbody>

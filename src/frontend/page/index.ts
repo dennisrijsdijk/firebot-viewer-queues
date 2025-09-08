@@ -75,9 +75,9 @@ const page: AngularJsPage = {
                 icon: "fa-bring-forward",
                 headerStyles: {},
                 sortable: false,
-                cellTemplate: `{{data.type}}`,
+                cellTemplate: `{{getTypeName(data)}}`,
                 cellController: ($scope: any) => {
-                    $scope.getTypeName = () => { /* {{String(data.type).charAt(0).toUpperCase() + String(data.type).slice(1)}} */ }
+                    $scope.getTypeName = (data: any) => String(data.type).charAt(0).toUpperCase() + String(data.type).slice(1);
                 }
             },
             {
@@ -90,31 +90,20 @@ const page: AngularJsPage = {
                 cellTemplate: `<span ng-bind="data.viewers.length"></span>`,
                 cellController: () => { }
             },
-            {
-                sortable: false,
-                cellStyles: {
-                    'text-align': 'center'
-                },
-                cellTemplate: `<input type="radio" ng-model="vqs.selectedQueueId" ng-value="data.id" />`,
-                cellController: ($scope: any, viewerQueuesService: ViewerQueuesService) => {
-                    $scope.vqs = viewerQueuesService;
-                }
-            }
         ];
 
         $scope.queueOptions = (queue: ViewerQueue) => {
             const options: MenuOption<ViewerQueue>[] = [
                 {
-                    html: `<a href><i class="fas fa-edit" style="margin-right: 10px;"></i> Edit</a>`,
+                    html: `<a href><i class="far fa-toggle-off" style="margin-right: 10px;"></i> ${queue.open ? "Close" : "Open"} Queue</a>`,
                     click: () => {
-                        viewerQueuesService.addOrEditQueue(queue);
+                        viewerQueuesService.toggleQueue(queue.id);
                     }
                 },
                 {
-                    html: `<a href><i class="fas fa-trash" style="margin-right: 10px;"></i> Delete</a>`,
+                    html: `<a href><i class="fas fa-edit" style="margin-right: 10px;"></i> Edit</a>`,
                     click: () => {
-                        // Show confirmation modal
-                        viewerQueuesService.deleteQueue(queue.id);
+                        viewerQueuesService.addOrEditQueue(queue);
                     }
                 },
             ]
@@ -135,13 +124,12 @@ const page: AngularJsPage = {
                                     component: "vqSliderModal",
                                     size: "sm",
                                     resolveObj: {
-                                        label: "Viewer Count",
-                                        sliderOptions: {
-                                            min: 1,
-                                            max: viewerQueuesService.queues[queue.id].viewers.length,
+                                        label: () => "Viewer Count",
+                                        sliderOptions: () => ({
+                                            floor: 1,
+                                            ceil: viewerQueuesService.queues[queue.id].viewers.length,
                                             step: 1,
-                                            value: 1
-                                        }
+                                        })
                                     },
                                     closeCallback: (resp: number) => {
                                         if (resp) {
@@ -154,6 +142,16 @@ const page: AngularJsPage = {
                     ]
                 })
             }
+
+            options.push(
+                {
+                    html: `<a href><i class="fas fa-trash" style="margin-right: 10px;"></i> Delete</a>`,
+                    click: () => {
+                        // Show confirmation modal
+                        viewerQueuesService.deleteQueue(queue.id);
+                    }
+                }
+            );
 
             return options;
         };
@@ -181,14 +179,14 @@ const page: AngularJsPage = {
             },
             {
                 name: "USERNAME",
-                    icon: "fa-user",
-                    dataField: "username",
-                    headerStyles: {
-                        'min-width': '125px'
-                    },
-                    sortable: true,
-                    cellTemplate: `{{data.displayName || data.username}}<span ng-if="data.displayName && data.username.toLowerCase() !== data.displayName.toLowerCase()" class="muted"> ({{data.username}})</span>`,
-                    cellController: () => {}
+                icon: "fa-user",
+                dataField: "username",
+                headerStyles: {
+                    'min-width': '125px'
+                },
+                sortable: true,
+                cellTemplate: `{{data.displayName || data.username}}<span ng-if="data.displayName && data.username.toLowerCase() !== data.displayName.toLowerCase()" class="muted"> ({{data.username}})</span>`,
+                cellController: () => { }
             }
         ];
 
@@ -197,7 +195,7 @@ const page: AngularJsPage = {
                 {
                     html: `<a href><i class="fas fa-trash" style="margin-right: 10px;"></i> Remove Viewer</a>`,
                     click: () => {
-                        $scope.vqs.removeViewerFromQueue($scope.vqs.selectedQueueId, viewer.id);
+                        $scope.vqs.removeViewerFromQueue(viewer.id);
                     }
                 },
             ]

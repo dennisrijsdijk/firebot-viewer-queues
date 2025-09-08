@@ -20,6 +20,10 @@ type BackendCommunicatorCommands = {
         args: [ queueId: string ];
         returns: boolean;
     };
+    toggleQueue: {
+        args: [ queueId: string ];
+        returns: void;
+    };
     deleteQueue: {
         args: [ queueId: string ];
         returns: boolean;

@@ -1,0 +1,15 @@
+<div class="modal-header">
+    <button type="button" class="close" aria-label="Close" ng-click="$ctrl.dismiss()">
+        <i class="fal fa-times" aria-hidden="true"></i>
+    </button>
+    <h4 class="modal-title">{{$ctrl.label}}</h4>
+</div>
+<div class="modal-body">
+    <div class="volume-slider-wrapper">
+        <rz-slider rz-slider-model="$ctrl.sliderValue" rz-slider-options="$ctrl.sliderOptions"></rz-slider>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" ng-click="$ctrl.dismiss()">Cancel</button>
+    <button type="button" class="btn btn-primary" ng-click="$ctrl.save()">Save</button>
+</div>

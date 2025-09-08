@@ -32,7 +32,7 @@
         add-new-button-text="New Viewer Queue" on-add-new-clicked="vqs.addOrEditQueue()"
         context-menu-options="queueOptions(item)" no-data-message="No viewer queues saved. You should make one! :)"
         none-found-message="No viewer queues found." search-placeholder="Search viewer queues"
-        test-button="false" status-field="open"></vq-item-table>
+        test-button="false" status-field="open" status-true-label="Open" status-false-label="Closed" selected-item-id="vqs.selectedQueueId" allow-select="true"></vq-item-table>
     <column-resizer on-update="resizeTriggered(updatedSettings)"></column-resizer>
     <div id="viewerList" ng-style="{ 'width': layout.viewerList }" style="height: 100%;">
         <vq-item-table ng-repeat="queue in vqs.queuesArray track by queue.id"
