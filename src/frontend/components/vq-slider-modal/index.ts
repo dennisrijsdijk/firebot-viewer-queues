@@ -30,8 +30,10 @@ const component: AngularJsComponent = {
             $ctrl.sliderValue = 1;
         };
 
-        $ctrl.save = () => {
-            $ctrl.close($ctrl.sliderValue);
+        $ctrl.pick = () => {
+            $ctrl.close({
+                $value: $ctrl.sliderValue
+            });
         }
     }
 };

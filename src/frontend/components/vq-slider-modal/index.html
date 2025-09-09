@@ -6,10 +6,10 @@
 </div>
 <div class="modal-body">
     <div class="volume-slider-wrapper">
-        <rz-slider rz-slider-model="$ctrl.sliderValue" rz-slider-options="$ctrl.sliderOptions"></rz-slider>
+        <rzslider rz-slider-model="$ctrl.sliderValue" rz-slider-options="$ctrl.sliderOptions"></rzslider>
     </div>
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-default" ng-click="$ctrl.dismiss()">Cancel</button>
-    <button type="button" class="btn btn-primary" ng-click="$ctrl.save()">Save</button>
+    <button type="button" class="btn btn-primary" ng-click="$ctrl.pick()">Pick Viewer{{ $ctrl.sliderValue !== 1 ? 's' : '' }}</button>
 </div>
