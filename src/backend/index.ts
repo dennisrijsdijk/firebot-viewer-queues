@@ -1,5 +1,7 @@
-import { setupDatabase } from "./database";
+import globals from "../globals";
+import { ViewerQueueDatabase } from "./database";
 
 export default function setupBackend() {
-    setupDatabase();
+    const database = new ViewerQueueDatabase();
+    globals.database = database;
 }

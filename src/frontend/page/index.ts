@@ -53,7 +53,7 @@ const page: AngularJsPage = {
     name: "Viewer Queues",
     icon: "fa-users",
     fullPage: true,
-    disableScroll: true,
+    disableScroll: false,
     controller: async ($scope: Scope, viewerQueuesService: ViewerQueuesService, vqBackend: VqBackendService, utilityService: any) => {
         const $ctrl = $scope.$ctrl;
         $scope.vqs = viewerQueuesService;

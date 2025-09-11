@@ -1,4 +1,5 @@
 import { RunRequest } from "@crowbartools/firebot-custom-scripts-types";
+import { ViewerQueueDatabase } from "./backend/database";
 
 export type Params = {};
 
@@ -22,6 +23,7 @@ class PluginGlobals {
     private _runRequest: RunRequest<Params>;
     private _scriptDataDir: string;
     private _frontendCommunicator: FrontendCommunicatorShim;
+    private _database: ViewerQueueDatabase;
 
     get runRequest() {
         return this._runRequest;
@@ -42,6 +44,14 @@ class PluginGlobals {
 
     get frontendCommunicator() {
         return this._frontendCommunicator;
+    }
+
+    get database() {
+        return this._database;
+    }
+
+    set database(database: ViewerQueueDatabase) {
+        this._database = database;
     }
 }
 

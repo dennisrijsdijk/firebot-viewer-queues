@@ -22,7 +22,7 @@ type BackendCommunicatorCommands = {
     };
     toggleQueue: {
         args: [ queueId: string ];
-        returns: void;
+        returns: boolean | undefined;
     };
     deleteQueue: {
         args: [ queueId: string ];
