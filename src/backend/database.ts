@@ -1,3 +1,4 @@
+import { EventEmitter } from "node:events";
 import globals from '../globals';
 import { randomUUID } from 'node:crypto';
 
@@ -33,7 +34,7 @@ function sendQueueUpdate(queue: ViewerQueue) {
     globals.frontendCommunicator.send("queueUpdated", queue);
 }
 
-export class ViewerQueueDatabase {
+export class ViewerQueueDatabase extends EventEmitter {
     addViewer(queueId: string, viewer: QueueViewer): boolean {
         const queue = mockDatabase.queues[queueId];
         if (!queue) {
@@ -73,6 +74,7 @@ export class ViewerQueueDatabase {
             return false;
         }
         delete mockDatabase.queues[queueId];
+        this.emit("queueDeleted", queueId);
         return true;
     }
 
@@ -134,6 +136,7 @@ export class ViewerQueueDatabase {
             return;
         }
         queue.name = name;
+        this.emit("queueUpdated", queue);
         sendQueueUpdate(queue);
     }
 
@@ -151,6 +154,7 @@ export class ViewerQueueDatabase {
     }
 
     constructor() {
+        super();
         globals.frontendCommunicator.on("addQueue", async (queue: ViewerQueue) => {
             let id: string;
             do {
@@ -159,6 +163,8 @@ export class ViewerQueueDatabase {
             queue.id = id;
 
             mockDatabase.queues[id] = queue;
+
+            this.emit("queueAdded", queue);
 
             return queue;
         });
