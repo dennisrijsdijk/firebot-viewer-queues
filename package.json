@@ -1,7 +1,7 @@
 {
   "name": "firebot-viewer-queues",
   "scriptOutputName": "viewer-queues",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A starter Firebot custom script",
   "main": "",
   "scripts": {
