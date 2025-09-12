@@ -164,7 +164,7 @@ export class VqCommandManager {
         const command: CommandType = {
             definition: {
                 id: `dennisontheinternet:viewer-queues:${queue.id}`,
-                name: `${queue.name} Management`,
+                name: `${queue.name} Queue Management`,
                 active: true,
                 trigger: `!${cleanName}`,
                 description: `Allows management of the "${queue.name}" Viewer Queue`,
@@ -366,7 +366,7 @@ export class VqCommandManager {
                     debugger;
                     return;
                 }
-                
+
                 const commandSender = {
                     // @ts-expect-error
                     id: event.chatMessage.userId,
@@ -377,10 +377,10 @@ export class VqCommandManager {
                     // @ts-expect-error
                     avatarUrl: event.chatMessage.profilePicUrl
                 }
-                
+
                 const viewerIndex = queue.viewers.findIndex(v => v.id === commandSender.id);
 
-                if (!event.userCommand.triggeredSubcmd) {
+                if (event.userCommand.args.length === 0) {
                     if (viewerIndex === -1) {
                         replaceAndSendChatMessage(event.commandOptions.baseCommandNotJoinedTemplate as string, {
                             username: normalizeUsername(commandSender.login, commandSender.display),
@@ -399,7 +399,7 @@ export class VqCommandManager {
                         });
                         return;
                     }
-                    
+
                     replaceAndSendChatMessage(event.commandOptions.baseCommandJoinedTemplate as string, {
                         username: normalizeUsername(commandSender.login, commandSender.display),
                         queueName: queue.name,
@@ -425,7 +425,7 @@ export class VqCommandManager {
                                 });
                                 break;
                             }
-                            
+
                             await globals.database.addViewer(queue.id, {
                                 id: commandSender.id,
                                 username: commandSender.login,
@@ -488,7 +488,7 @@ export class VqCommandManager {
                             });
                             break;
                         }
-                        
+
                         replaceAndSendChatMessage(event.commandOptions.positionCommandPositionTemplate as string, {
                             username: normalizeUsername(commandSender.login, commandSender.display),
                             queueName: queue.name,
@@ -618,10 +618,12 @@ export class VqCommandManager {
     }
 
     constructor() {
-        Object.values(globals.database.getQueues()).forEach(queue => this.updateQueueCommand("add", queue));
-        
-        globals.database.on("queueAdded", (queue) => this.updateQueueCommand("add", queue));
-        globals.database.on("queueUpdated", (queue) => this.updateQueueCommand("update", queue));
-        globals.database.on("queueRemoved", (queue) => this.updateQueueCommand("remove", queue));
+        globals.database.getQueues().then(queues => {
+            Object.values(queues).forEach(queue => this.updateQueueCommand("add", queue));
+
+            globals.database.on("queueAdded", (queue) => this.updateQueueCommand("add", queue));
+            globals.database.on("queueUpdated", (queue) => this.updateQueueCommand("update", queue));
+            globals.database.on("queueRemoved", (queue) => this.updateQueueCommand("remove", queue));
+        });
     }
 }

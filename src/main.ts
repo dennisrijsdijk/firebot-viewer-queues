@@ -33,7 +33,7 @@ const script: Firebot.CustomScript<Params> = {
       runRequest.modules.fs.mkdirSync(globals.scriptDataDir, { recursive: true });
     }
 
-    setupBackend();
+    await setupBackend();
     setupFrontend();
   },
 };

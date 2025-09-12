@@ -154,6 +154,7 @@ export class ViewerQueueDatabase extends EventEmitter {
     }
 
     async setupDatabase(): Promise<void> {
+        await this._db.load();
         if (!await this._db.exists("/queues")) {
             await this._db.push("/queues", {});
         }
@@ -169,17 +170,17 @@ export class ViewerQueueDatabase extends EventEmitter {
         super();
         this._db = new JsonDB(new Config(globals.runRequest.modules.path.join(globals.scriptDataDir, "viewer-queues-db.json"), true, false, '/'));
 
-        globals.frontendCommunicator.on("addQueue", this.addQueue);
-        globals.frontendCommunicator.on("addViewer", this.addViewer);
-        globals.frontendCommunicator.on("clearQueue", this.clearQueue);
-        globals.frontendCommunicator.on("toggleQueue", this.toggleQueue);
-        globals.frontendCommunicator.on("deleteQueue", this.deleteQueue);
-        globals.frontendCommunicator.on("getLayout", this.getLayout);
-        globals.frontendCommunicator.on("getQueues", this.getQueues);
-        globals.frontendCommunicator.on("removeViewer", this.removeViewer);
-        globals.frontendCommunicator.on("rollViewers", this.rollViewers);
-        globals.frontendCommunicator.on("updateLayout", this.updateLayout);
-        globals.frontendCommunicator.on("updateQueueName", this.updateQueueName);
-        globals.frontendCommunicator.on("updateQueueType", this.updateQueueType);
+        globals.frontendCommunicator.on("addQueue", (queue: ViewerQueue) => this.addQueue(queue));
+        globals.frontendCommunicator.on("addViewer", (queueId: string, viewer: QueueViewer) => this.addViewer(queueId, viewer));
+        globals.frontendCommunicator.on("clearQueue", (queueId: string) => this.clearQueue(queueId));
+        globals.frontendCommunicator.on("toggleQueue", (queueId: string) => this.toggleQueue(queueId));
+        globals.frontendCommunicator.on("deleteQueue", (queueId: string) => this.deleteQueue(queueId));
+        globals.frontendCommunicator.on("getLayout", () => this.getLayout());
+        globals.frontendCommunicator.on("getQueues", () => this.getQueues());
+        globals.frontendCommunicator.on("removeViewer", (queueId: string, viewerId: string) => this.removeViewer(queueId, viewerId));
+        globals.frontendCommunicator.on("rollViewers", (queueId: string, count: number) => this.rollViewers(queueId, count));
+        globals.frontendCommunicator.on("updateLayout", (layout: DatabaseSchema["layout"]) => this.updateLayout(layout));
+        globals.frontendCommunicator.on("updateQueueName", (queueId: string, name: string) => this.updateQueueName(queueId, name));
+        globals.frontendCommunicator.on("updateQueueType", (queueId: string, type: QueueType) => this.updateQueueType(queueId, type));
     }
 }

@@ -63,7 +63,6 @@ const component: AngularJsComponent = {
         $ctrl.save = async () => {
             if ($scope.viewerQueueSettings.$invalid) {
                 logger.debug("Form is invalid");
-                debugger;
                 return;
             }
 

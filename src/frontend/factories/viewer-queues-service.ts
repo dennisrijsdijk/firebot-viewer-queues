@@ -129,6 +129,10 @@ const service: AngularJsFactory = {
             }
             service.queues[queue.id!] = queue;
             service.queuesArray = Object.values(service.queues);
+
+            if (!service.selectedQueueId || !service.queues[service.selectedQueueId]) {
+                service.selectedQueueId = service.queuesArray.length > 0 ? service.queuesArray[0].id : undefined;
+            }
         });
 
         return service;
