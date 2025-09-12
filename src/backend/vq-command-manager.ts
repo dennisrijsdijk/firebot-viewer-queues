@@ -360,7 +360,7 @@ export class VqCommandManager {
                 subCommands
             },
             onTriggerEvent: async (event) => {
-                const queue = globals.database.getQueue((event.command as CommandDefinition & { viewerQueueId: string }).viewerQueueId);
+                const queue = await globals.database.getQueue((event.command as CommandDefinition & { viewerQueueId: string }).viewerQueueId);
                 if (!queue) {
                     // Hell froze over
                     debugger;
@@ -426,7 +426,7 @@ export class VqCommandManager {
                                 break;
                             }
                             
-                            globals.database.addViewer(queue.id, {
+                            await globals.database.addViewer(queue.id, {
                                 id: commandSender.id,
                                 username: commandSender.login,
                                 displayName: commandSender.display,
@@ -507,7 +507,7 @@ export class VqCommandManager {
                             break;
                         }
 
-                        globals.database.removeViewer(queue.id, commandSender.id);
+                        await globals.database.removeViewer(queue.id, commandSender.id);
 
                         replaceAndSendChatMessage(event.commandOptions.leaveCommandLeftTemplate as string, {
                             username: normalizeUsername(commandSender.login, commandSender.display),
@@ -516,7 +516,7 @@ export class VqCommandManager {
                         });
                         break;
                     case "clear":
-                        globals.database.clearQueue(queue.id);
+                        await globals.database.clearQueue(queue.id);
 
                         replaceAndSendChatMessage(event.commandOptions.clearCommandClearedTemplate as string, {
                             queueName: queue.name
@@ -533,7 +533,7 @@ export class VqCommandManager {
                         const count = parseInt(event.userCommand.args[1] || "1");
 
                         if (!event.commandOptions.pickCommandAutoSplitMessage as boolean) {
-                            const viewers = globals.database.rollViewers(queue.id, count) || [];
+                            const viewers = await globals.database.rollViewers(queue.id, count) || [];
                             replaceAndSendChatMessage(event.commandOptions.pickCommandPickedTemplate as string, {
                                 users: viewers.map(v => normalizeUsername(v.username, v.displayName)).join(", "),
                                 queueName: queue.name,
@@ -545,7 +545,7 @@ export class VqCommandManager {
                         let pickedViewerCount = 0;
                         do {
                             const amountToPick = Math.min(event.commandOptions.pickCommandAutoSplitCount as number, count - pickedViewerCount);
-                            const viewers = globals.database.rollViewers(queue.id, amountToPick) || [];
+                            const viewers = await globals.database.rollViewers(queue.id, amountToPick) || [];
                             replaceAndSendChatMessage(event.commandOptions.pickCommandPickedTemplate as string, {
                                 users: viewers.map(v => normalizeUsername(v.username, v.displayName)).join(", "),
                                 queueName: queue.name,
@@ -562,7 +562,7 @@ export class VqCommandManager {
                             break;
                         }
 
-                        globals.database.toggleQueue(queue.id);
+                        await globals.database.toggleQueue(queue.id);
 
                         replaceAndSendChatMessage(event.commandOptions.openCommandOpenedTemplate as string, {
                             queueName: queue.name
@@ -576,7 +576,7 @@ export class VqCommandManager {
                             break;
                         }
 
-                        globals.database.toggleQueue(queue.id);
+                        await globals.database.toggleQueue(queue.id);
 
                         replaceAndSendChatMessage(event.commandOptions.closeCommandClosedTemplate as string, {
                             queueName: queue.name

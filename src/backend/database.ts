@@ -1,42 +1,19 @@
 import { EventEmitter } from "node:events";
 import globals from '../globals';
 import { randomUUID } from 'node:crypto';
+import { JsonDB, Config } from 'node-json-db';
 
 const types = ["queue", "stack", "random"] as const;
-
-const avatarUrl = "https://static.vecteezy.com/system/resources/thumbnails/002/318/271/small/user-profile-icon-free-vector.jpg";
-
-const dennisontheinternet = { id: "452884554", username: "dennisontheinternet", displayName: "DennisOnTheInternet", avatarUrl: "https://static-cdn.jtvnw.net/jtv_user_pictures/fa9fce69-8251-4983-9cd0-fc88c1c16e98-profile_image-300x300.png" };
-
-function generateViewer(index: number): QueueViewer {
-    return { id: index.toString(), username: `user${index}`, displayName: `User ${index}`, avatarUrl };
-}
-
-function generateRandomQueues(queues: 5): Record<string, ViewerQueue> {
-    const result: Record<string, ViewerQueue> = {};
-    for (let i = 0; i < queues; i++) {
-        const id = randomUUID();
-        const name = `Queue ${i + 1}`;
-        const type = types[Math.floor(Math.random() * types.length)];
-        const viewerCount = Math.floor(Math.random() * (20) + 5);
-        const queueViewers = Array.from({ length: viewerCount }, (_, i) => generateViewer(i + 1));
-        if (Math.random() > 0.3) {
-            queueViewers.push(dennisontheinternet);
-        }
-        result[id] = { id, name, type, viewers: queueViewers.sort(() => 0.5 - Math.random()), open: Math.random() < 0.5 };
-    }
-    return result;
-}
-
-let mockDatabase: DatabaseSchema;
 
 function sendQueueUpdate(queue: ViewerQueue) {
     globals.frontendCommunicator.send("queueUpdated", queue);
 }
 
 export class ViewerQueueDatabase extends EventEmitter {
-    addViewer(queueId: string, viewer: QueueViewer): boolean {
-        const queue = mockDatabase.queues[queueId];
+    private _db: JsonDB;
+
+    async addViewer(queueId: string, viewer: QueueViewer): Promise<boolean> {
+        const queue = await this._db.getObject<ViewerQueue>(`/queues/${queueId}`);
         if (!queue) {
             return false;
         }
@@ -44,50 +21,65 @@ export class ViewerQueueDatabase extends EventEmitter {
             return false;
         }
         queue.viewers.push(viewer);
+        await this._db.push(`/queues/${queueId}`, queue);
         sendQueueUpdate(queue);
         return true;
     }
 
-    clearQueue(queueId: string): boolean {
-        const queue = mockDatabase.queues[queueId];
+    async addQueue(queue: ViewerQueue): Promise<ViewerQueue> {
+        const queues = await this._db.getObject<DatabaseSchema["queues"]>("/queues");
+        let id: string;
+        do {
+            id = randomUUID();
+        } while (queues[id]);
+        queue.id = id;
+        await this._db.push(`/queues/${id}`, queue);
+        this.emit("queueAdded", queue);
+        return queue;
+    }
+
+    async clearQueue(queueId: string): Promise<boolean> {
+        const queue = await this._db.getObject<ViewerQueue>(`/queues/${queueId}`);
         if (!queue) {
             return false;
         }
         queue.viewers = [];
+        await this._db.push(`/queues/${queueId}`, queue);
         sendQueueUpdate(queue);
         return true;
     }
 
-    toggleQueue(queueId: string): boolean {
-        const queue = mockDatabase.queues[queueId];
+    async toggleQueue(queueId: string): Promise<boolean | undefined> {
+        const queue = await this._db.getObject<ViewerQueue>(`/queues/${queueId}`);
         if (!queue) {
             return;
         }
         queue.open = !queue.open;
+        await this._db.push(`/queues/${queueId}`, queue);
         sendQueueUpdate(queue);
         return queue.open;
     }
 
-    deleteQueue(queueId: string): boolean {
-        const queue = mockDatabase.queues[queueId];
+    async deleteQueue(queueId: string): Promise<boolean> {
+        const queue = await this._db.getObject<ViewerQueue>(`/queues/${queueId}`);
         if (!queue) {
             return false;
         }
-        delete mockDatabase.queues[queueId];
+        await this._db.delete(`/queues/${queueId}`);
         this.emit("queueDeleted", queueId);
         return true;
     }
 
-    getLayout(): DatabaseSchema["layout"] {
-        return mockDatabase.layout;
+    async getLayout(): Promise<DatabaseSchema["layout"]> {
+        return await this._db.getObject<DatabaseSchema["layout"]>("/layout");
     }
 
-    getQueues(): DatabaseSchema["queues"] {
-        return mockDatabase.queues;
+    async getQueues(): Promise<DatabaseSchema["queues"]> {
+        return await this._db.getObject<DatabaseSchema["queues"]>("/queues");
     }
 
-    removeViewer(queueId: string, viewerId: string): boolean {
-        const queue = mockDatabase.queues[queueId];
+    async removeViewer(queueId: string, viewerId: string): Promise<boolean> {
+        const queue = await this._db.getObject<ViewerQueue>(`/queues/${queueId}`);
         if (!queue) {
             return false;
         }
@@ -96,12 +88,13 @@ export class ViewerQueueDatabase extends EventEmitter {
             return false;
         }
         queue.viewers.splice(viewerIndex, 1);
+        await this._db.push(`/queues/${queueId}`, queue);
         sendQueueUpdate(queue);
         return true;
     }
 
-    rollViewers(queueId: string, count: number): QueueViewer[] | undefined {
-        const queue = mockDatabase.queues[queueId];
+    async rollViewers(queueId: string, count: number): Promise<QueueViewer[] | undefined> {
+        const queue = await this._db.getObject<ViewerQueue>(`/queues/${queueId}`);
         if (!queue) {
             return;
         }
@@ -126,66 +119,67 @@ export class ViewerQueueDatabase extends EventEmitter {
                 }
                 break;
         }
+        await this._db.push(`/queues/${queueId}`, queue);
         sendQueueUpdate(queue);
         return pickedViewers;
     }
 
-    updateQueueName(queueId: string, name: string): void {
-        const queue = mockDatabase.queues[queueId];
+    async updateLayout(layout: DatabaseSchema["layout"]): Promise<void> {
+        await this._db.push("/layout", layout);
+    }
+
+    async updateQueueName(queueId: string, name: string): Promise<void> {
+        const queue = await this._db.getObject<ViewerQueue>(`/queues/${queueId}`);
         if (!queue) {
             return;
         }
         queue.name = name;
+        await this._db.push(`/queues/${queueId}`, queue);
         this.emit("queueUpdated", queue);
         sendQueueUpdate(queue);
     }
 
-    updateQueueType(queueId: string, type: QueueType): void {
-        const queue = mockDatabase.queues[queueId];
+    async updateQueueType(queueId: string, type: QueueType): Promise<void> {
+        const queue = await this._db.getObject<ViewerQueue>(`/queues/${queueId}`);
         if (!queue) {
             return;
         }
         queue.type = type;
+        await this._db.push(`/queues/${queueId}`, queue);
         sendQueueUpdate(queue);
     }
 
-    getQueue(id: string): ViewerQueue | undefined {
-        return mockDatabase.queues[id];
+    async getQueue(id: string): Promise<ViewerQueue | undefined> {
+        return await this._db.getObject<ViewerQueue>(`/queues/${id}`);
+    }
+
+    async setupDatabase(): Promise<void> {
+        if (!await this._db.exists("/queues")) {
+            await this._db.push("/queues", {});
+        }
+        if (!await this._db.exists("/layout")) {
+            await this._db.push("/layout", {
+                queuesTable: "50%",
+                viewerList: "50%"
+            });
+        }
     }
 
     constructor() {
         super();
-        globals.frontendCommunicator.on("addQueue", async (queue: ViewerQueue) => {
-            let id: string;
-            do {
-                id = crypto.randomUUID();
-            } while (mockDatabase.queues[id]);
-            queue.id = id;
+        this._db = new JsonDB(new Config(globals.runRequest.modules.path.join(globals.scriptDataDir, "viewer-queues-db.json"), true, false, '/'));
 
-            mockDatabase.queues[id] = queue;
-
-            this.emit("queueAdded", queue);
-
-            return queue;
-        });
-        globals.frontendCommunicator.on("addViewer", async (queueId: string, viewer: QueueViewer) => this.addViewer(queueId, viewer));
-        globals.frontendCommunicator.on("clearQueue", async (queueId: string) => this.clearQueue(queueId));
-        globals.frontendCommunicator.on("toggleQueue", async (queueId: string) => this.toggleQueue(queueId));
-        globals.frontendCommunicator.on("deleteQueue", async (queueId: string) => this.deleteQueue(queueId));
-        globals.frontendCommunicator.on("getLayout", async () => mockDatabase.layout);
-        globals.frontendCommunicator.on("getQueues", async () => this.getQueues());
-        globals.frontendCommunicator.on("removeViewer", async (queueId: string, viewerId: string) => this.removeViewer(queueId, viewerId));
-        globals.frontendCommunicator.on("rollViewers", async (queueId: string, count: number) => this.rollViewers(queueId, count));
-        globals.frontendCommunicator.on("updateLayout", async (layout: DatabaseSchema["layout"]) => { mockDatabase.layout = layout; });
-        globals.frontendCommunicator.on("updateQueueName", async (queueId: string, name: string) => this.updateQueueName(queueId, name));
-        globals.frontendCommunicator.on("updateQueueType", async (queueId: string, type: QueueType) => this.updateQueueType(queueId, type));
-
-        mockDatabase = {
-            queues: generateRandomQueues(5),
-            layout: {
-                queuesTable: "50%",
-                viewerList: "50%"
-            }
-        };
+        globals.frontendCommunicator.on("addQueue", this.addQueue);
+        globals.frontendCommunicator.on("addViewer", this.addViewer);
+        globals.frontendCommunicator.on("clearQueue", this.clearQueue);
+        globals.frontendCommunicator.on("toggleQueue", this.toggleQueue);
+        globals.frontendCommunicator.on("deleteQueue", this.deleteQueue);
+        globals.frontendCommunicator.on("getLayout", this.getLayout);
+        globals.frontendCommunicator.on("getQueues", this.getQueues);
+        globals.frontendCommunicator.on("removeViewer", this.removeViewer);
+        globals.frontendCommunicator.on("rollViewers", this.rollViewers);
+        globals.frontendCommunicator.on("updateLayout", this.updateLayout);
+        globals.frontendCommunicator.on("updateQueueName", this.updateQueueName);
+        globals.frontendCommunicator.on("updateQueueType", this.updateQueueType);
     }
 }
