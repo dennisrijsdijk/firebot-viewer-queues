@@ -106,44 +106,6 @@ const page: AngularJsPage = {
                         viewerQueuesService.addOrEditQueue(queue);
                     }
                 },
-            ]
-            if (queue.viewers.length > 0) {
-                options.push({
-                    text: "Pick Viewer(s)",
-                    children: [
-                        {
-                            html: `<a href><i class="fas fa-users" style="margin-right: 10px;"></i> Pick Single Viewer</a>`,
-                            click: () => {
-                                viewerQueuesService.rollViewers(queue.id, 1);
-                            }
-                        },
-                        {
-                            html: `<a href><i class="fas fa-users" style="margin-right: 10px;"></i> Pick Multiple Viewers</a>`,
-                            click: () => {
-                                utilityService.showModal({
-                                    component: "vqSliderModal",
-                                    size: "sm",
-                                    resolveObj: {
-                                        label: () => "Viewer Count",
-                                        sliderOptions: () => ({
-                                            floor: 1,
-                                            ceil: viewerQueuesService.queues[queue.id].viewers.length,
-                                            step: 1,
-                                        })
-                                    },
-                                    closeCallback: (resp: number) => {
-                                        if (resp) {
-                                            viewerQueuesService.rollViewers(queue.id, resp);
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    ]
-                })
-            }
-
-            options.push(
                 {
                     html: `<a href><i class="fas fa-trash" style="margin-right: 10px;"></i> Delete</a>`,
                     click: () => {
@@ -151,7 +113,7 @@ const page: AngularJsPage = {
                         viewerQueuesService.deleteQueue(queue.id);
                     }
                 }
-            );
+            ];
 
             return options;
         };
