@@ -12,7 +12,7 @@ const script: Firebot.CustomScript<Params> = {
       name: "Viewer Queues",
       description: "A Firebot plugin which provides an easy-to-use viewer queue system.",
       author: "DennisOnTheInternet",
-      version: "1.0",
+      version: "0.0.3",
       firebotVersion: "5",
       startupOnly: true
     };
