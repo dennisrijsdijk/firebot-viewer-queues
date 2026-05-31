@@ -1,5 +1,6 @@
 import { Firebot } from "@crowbartools/firebot-custom-scripts-types";
 import { Params } from "./globals";
+import * as fs from "fs";
 
 import globals from "./globals";
 import setupBackend from "./backend";
@@ -29,8 +30,8 @@ const script: Firebot.CustomScript<Params> = {
       const scriptNameNormalized = (await script.getScriptManifest()).name.replace(/[#%&{}\\<>*?/$!'":@`|=\s-]+/g, "-").toLowerCase();
       globals.scriptDataDir = runRequest.modules.path.join(SCRIPTS_DIR, "..", "script-data", scriptNameNormalized);
     }
-    if (!runRequest.modules.fs.existsSync(globals.scriptDataDir)) {
-      runRequest.modules.fs.mkdirSync(globals.scriptDataDir, { recursive: true });
+    if (!fs.existsSync(globals.scriptDataDir)) {
+      fs.mkdirSync(globals.scriptDataDir, { recursive: true });
     }
 
     await setupBackend();
